@@ -1,0 +1,55 @@
+/* 
+MySQL query to select incorrect EAN-8 и EAN-13 bacodes.
+12.01.2015, oleksiy.muzalyev@gmail.com
+ */
+SELECT 
+	`articul`, `barcode` 
+FROM 
+	`barcodes` 
+WHERE 
+	/* 1. first we select obviously wrong numer which not 8 or 13 digits */
+	( CHAR_LENGTH(barcode) != 13 AND CHAR_LENGTH (barcode) != 8 )
+OR 
+	/* 2. selecting wrong EAN-13 barcodes */
+	(
+		( CHAR_LENGTH(barcode) = 13 )
+		AND 
+		(SUBSTRING((10 - ((
+		(
+		(
+		SUBSTRING(barcode FROM 2 FOR 1) +
+		SUBSTRING(barcode FROM 4 FOR 1) +
+		SUBSTRING(barcode FROM 6 FOR 1) +
+		SUBSTRING(barcode FROM 8 FOR 1) +
+		SUBSTRING(barcode FROM 10 FOR 1) +
+		SUBSTRING(barcode FROM 12 FOR 1)
+		)*3
+		
+		) + (
+		SUBSTRING(barcode FROM 1 FOR 1) +
+		SUBSTRING(barcode FROM 3 FOR 1) +
+		SUBSTRING(barcode FROM 5 FOR 1) +
+		SUBSTRING(barcode FROM 7 FOR 1) +
+		SUBSTRING(barcode FROM 9 FOR 1) +
+		SUBSTRING(barcode FROM 11 FOR 1)
+		)) MOD 10)) FROM -1 FOR 1) != SUBSTRING(barcode FROM 13 FOR 1))
+	)
+OR 
+	(
+		/* 3. selecting wrong EAN-8 barcodes */
+		(CHAR_LENGTH(barcode) = 8)
+		AND
+		(SUBSTRING((10 - (((
+		SUBSTRING(barcode FROM 2 FOR 1) +
+		SUBSTRING(barcode FROM 4 FOR 1) +
+		SUBSTRING(barcode FROM 6 FOR 1)
+		) + (
+		(
+		SUBSTRING(barcode FROM 1 FOR 1) +
+		SUBSTRING(barcode FROM 3 FOR 1) +
+		SUBSTRING(barcode FROM 5 FOR 1) +
+		SUBSTRING(barcode FROM 7 FOR 1)
+		)*3
+		)
+		) MOD 10)) FROM -1 FOR 1) != SUBSTRING(barcode FROM 8 FOR 1))
+	)
